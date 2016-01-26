@@ -2,6 +2,7 @@ package edu.uw.intentdemo;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "**DEMO**";
 
+    private static final int REQUEST_PICTURE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,8 +27,11 @@ public class MainActivity extends AppCompatActivity {
         launchButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.v(TAG, "Launch button pressed");
-
-
+                //.class go get instance of that class
+                //Explicit intent -> specific address
+                Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+                intent.putExtra("edu.uw.intentdemo.message", "Hello number 2!");
+                startActivity(intent); //send intent to another activity, please start doing intent
             }
         });
 
@@ -36,7 +41,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.v(TAG, "Call button pressed");
 
-
+                //implicit intent
+                // two parameters action, data
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                //setData takes uri (universal resource indicater)
+                intent.setData(Uri.parse("tel:206-685-1622"));
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                }
             }
         });
 
@@ -46,7 +58,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.v(TAG, "Camera button pressed");
 
-
+                //implicit intent
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if(intent.resolveActivity(getPackageManager()) != null) {
+                    //REQUEST_PICTURE like null
+                    startActivityForResult(intent, REQUEST_PICTURE);
+                }
             }
         });
 
@@ -61,6 +78,18 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    //create callback
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
+        //if camera responds with a "yup!"
+        if(requestCode == REQUEST_PICTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap bitmap = (Bitmap)extras.get("data");
+
+            ((ImageView)findViewById(R.id.imgThumbnail)).setImageBitmap(bitmap);
+        }
+    }
 
 }
